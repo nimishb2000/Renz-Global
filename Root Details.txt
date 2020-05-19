@@ -1,0 +1,4 @@
+self_id: 693b26e2-d45d-4933-95cb-97ed1dfc5471
+username: admin
+pwd: =NsuQ5n!CHVZ#5&Q
+tpwd: $S/x7>!)Xka4fu@6
