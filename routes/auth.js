@@ -15,10 +15,11 @@ router.post('/signup',
                 if (value == '') {
                     throw new Error('Please enter a username');
                 }
+                return true;
             }),
         check('password')
             .isLength({ min: 8 })
-            .withMessage('Password must be atleast 8 characters long'),
+            .withMessage('Password must be at least 8 characters long'),
         check('confirmpassword')
             .custom((value, { req }) => {
                 if (value == '') {
@@ -27,18 +28,20 @@ router.post('/signup',
                 if (value != req.body.password) {
                     throw new Error('Password does not match');
                 }
+                return true;
             }),
-        check('tpassword')
+        check('tPassword')
             .isLength({ min: 8 })
-            .withMessage('Password must be atleast 8 characters long'),
+            .withMessage('Transaction password must be at least 8 characters long'),
         check('confirmtpassword')
             .custom((value, { req }) => {
                 if (value == '') {
-                    throw new Error('Confirm your password');
+                    throw new Error('Confirm your transaction password');
                 }
                 if (value != req.body.password) {
-                    throw new Error('Password does not match');
+                    throw new Error('Transaction password does not match');
                 }
+                return true;
             }),
         check('name')
             .matches(/^[a-z ]+$/i)
@@ -47,6 +50,7 @@ router.post('/signup',
                 if (value == '') {
                     throw new Error('Please enter your name');
                 }
+                return true;
             }),
         check('fhname')
             .matches(/^[a-z ]+$/i)
@@ -55,12 +59,13 @@ router.post('/signup',
                 if (value == '') {
                     throw new Error('Please enter your father\'s/husband\'s name');
                 }
+                return true;
             }),
-        check('phonenumber')
-            .isLength({ min: 10, max: 10 })
-            .withMessage('Enter a correct phone number')
+        check('phoneNumber')
             .isNumeric()
-            .withMessage('Phone number can only contain numbers'),
+            .withMessage('Phone number can only contain numbers')
+            .isLength({ min: 10, max: 10 })
+            .withMessage('Enter a correct phone number'),
         check('email')
             .isEmail()
             .withMessage('Enter correct email'),
@@ -74,6 +79,7 @@ router.post('/signup',
                 if (value == '') {
                     throw new Error('Specify your gender');
                 }
+                return true;
             })
     ],
     authController.postSignup
@@ -87,10 +93,17 @@ router.post('/login',
                 if (value == '') {
                     throw new Error('Please enter a username');
                 }
+                return true;
             }),
         check('password')
             .isLength({ min: 8 })
-            .withMessage('Password must be atleast 8 characters long')
+            .withMessage('Password must be 8 characters long')
+            .custom(value => {
+                if (value == "") {
+                    throw new Error('Please enter a password');
+                }
+                return true;
+            })
     ],
     authController.postLogin
 );

@@ -4,7 +4,7 @@ const config = require('../util/config');
 const Member = require('../models/member');
 const Token = require('../models/token');
 
-exports.getDirectSponsers = (req, res, next) => {
+exports.getDirectSponsors = (req, res, next) => {
     let token = req.headers['authorization'];
     if (!token) {
         const error = new Error('Token not provided');
@@ -12,34 +12,22 @@ exports.getDirectSponsers = (req, res, next) => {
         return next(error);
     }
     token = token.slice(7, token.length);
-    jwt.verify(token, config.tokenSecret, (err, decoded) => {
+    jwt.verify(token, config.tokenKey, async (err, decoded) => {
         if (err) {
             const error = new Error(err.message);
             error.statusCode = 403;
             return next(error);
         }
-        Token.findOne({ 'token': token })
-            .then(token => {
-                if (!token) {
-                    const error = new Error('Invalid Token');
-                    error.statusCode = 403;
-                    return next(error);
-                }
-            })
-            .catch(err => {
-                const error = new Error(err);
-                return next(error);
-            });
-        Member.find({ 'sponser_id': decoded })
-            .then(members => {
-                res.json(200).json({
-                    members
-                });
-            })
-            .catch(err => {
-                const error = new Error(err);
-                return next(error);
-            });
+        fetched_token = await Token.findOne({ 'token': token }).exec().catch(err => { return next(err) });
+        if (!fetched_token) {
+            const error = new Error('Invalid Token');
+            error.statusCode = 403;
+            return next(error);
+        }
+        const members = await Member.find({ 'sponsor_id': decoded.id }).exec().catch(err => { return next(err) });
+        res.status(200).json({
+            members
+        });
     });
 };
 
@@ -51,41 +39,29 @@ exports.getDownline = (req, res, next) => {
         return next(error);
     }
     token = token.slice(7, token.length);
-    jwt.verify(token, config.tokenSecret, (err, decoded) => {
+    jwt.verify(token, config.tokenKey, async (err, decoded) => {
         if (err) {
             const error = new Error(err.message);
             error.statusCode = 403;
             return next(error);
         }
-        Token.findOne({ 'token': token })
-            .then(token => {
-                if (!token) {
-                    const error = new Error('Invalid Token');
-                    error.statusCode = 403;
-                    return next(error);
-                }
-            })
-            .catch(err => {
-                const error = new Error(err);
-                return next(error);
-            });
+        fetched_token = await Token.findOne({ 'token': token }).exec().catch(err => { return next(err) });
+        if (!fetched_token) {
+            const error = new Error('Invalid Token');
+            error.statusCode = 403;
+            return next(error);
+        }
         const IDs = [];
-        IDs.push(decoded);
+        IDs.push(decoded.id);
         let membersArray = [];
-        while (IDs.length != 0) {
-            let last_index = IDs.length - 1;
-            Member.find({ 'sponser_id': IDs[last_index] })
-                .then(members => {
-                    membersArray = membersArray.concat(members);
-                    IDs.pop();
-                    members.forEach(element => {
-                        IDs.push(element.self_id);
-                    });
-                })
-                .catch(err => {
-                    const error = new Error(err);
-                    return next(error);
-                });
+        for (i = IDs.length - 1; i >= 0; ) {
+            const members = await Member.find({ 'sponsor_id': IDs[i] }).exec().catch(err => { return next(err) });
+            membersArray = membersArray.concat(members);
+            IDs.pop();
+            members.forEach(element => {
+                IDs.push(element.self_id);
+            });
+            i = IDs.length - 1;
         }
         res.status(200).json({
             downline: membersArray

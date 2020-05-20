@@ -17,12 +17,14 @@ router.post('/testimonial',
                 if (value == '') {
                     throw new Error('Please enter your name')
                 }
+                return true;
             }),
         check('message')
             .custom(value => {
                 if (value == '') {
                     throw new Error('Please provide a message')
                 }
+                return true;
             }),
         check('subject')
             .isAlphanumeric()
@@ -31,6 +33,7 @@ router.post('/testimonial',
                 if (value == '') {
                     throw new Error('Please provide a subject')
                 }
+                return true;
             })
     ],
     memberController.postTestimonial

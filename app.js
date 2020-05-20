@@ -42,8 +42,8 @@ app.use((req, res, next) => {
     next();
 });
 
-app.post(authRoutes);
-app.get(teamRoutes);
+app.use(authRoutes);
+app.use(teamRoutes);
 app.use(memberRoutes);
 app.use((error, req, res, next) => {
     const status = error.statusCode || 500;
