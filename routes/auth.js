@@ -5,7 +5,7 @@ const authController = require('../controllers/auth');
 
 const router = express.Router();
 
-router.post('/check-sponser', authController.postCheckId);
+router.post('/check-sponsor', authController.postCheckId);
 router.post('/signup',
     [
         check('username')
