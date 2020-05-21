@@ -38,5 +38,17 @@ router.post('/testimonial',
     ],
     memberController.postTestimonial
 );
+router.post('/payment',
+    check('amount')
+        .isNumeric()
+        .withMessage('Amount must only contain numbers')
+        .custom(value => {
+            if (value == '') {
+                throw new Error('Please enter an amount');
+            }
+            return true;
+        }),
+    memberController.postPayment
+);
 
 module.exports = router;
