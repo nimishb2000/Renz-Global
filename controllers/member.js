@@ -53,7 +53,7 @@ exports.getGPReport = (req, res, next) => {
         return next(error);
     }
     token = token.slice(7, token.length);
-    jwt.verify(token, config.tokenKey, (err, decoded) => {
+    jwt.verify(token, config.tokenKey, async (err, decoded) => {
         if (err) {
             const error = new Error(err.message);
             error.statusCode = 403;
@@ -70,13 +70,18 @@ exports.getGPReport = (req, res, next) => {
             .catch(err => {
                 return next(err);
             });
-        Payment.find({ sender: decoded.id })
-            .then(payments => {
-                res.status(200).json({
-                    payments
-                });
-            })
-            .catch(err => { return next(err) });
+        const member = await Member.findOne({ 'self_id': decoded.id }).exec().catch(err => { return next(err); });
+        if (!member) {
+            const error = new Error('Invalid Token');
+            error.statusCode = 406;
+            return next(error);
+        }
+        const total_income = member.total_income;
+        const retail_incentive = member.retail_incentive;
+        res.status(200).json({
+            total_income,
+            retail_incentive
+        });
     });
 };
 
@@ -204,9 +209,22 @@ exports.postPayment = (req, res, next) => {
             error.statusCode = 406;
             return next(error);
         }
-        const sender = decoded.id;
-        const recipient = member.sponsor_id;
+        const sponsor = await Member.findOne({ 'sponsor_id': member.sponsor_id }).exec().catch(err => { return next(err); });
+        if (!sponsor) {
+            const error = new Error('Invalid sponsor ID');
+            error.statusCode = 406;
+            return next(error);
+        }
         const amount = req.body.amount;
+        const total_income = sponsor.total_income;
+        const retail_incentive = sponsor.retail_incentive;
+        retail_incentive += amount / 20;
+        total_income += amount / 20;
+        sponsor.total_income = total_income;
+        sponsor.retail_incentive = retail_incentive;
+        sponsor.save();
+        const sender = member.name;
+        const recipient = sponsor.name;
         let date = new Date;
         date = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
         const new_payment = new Payment({

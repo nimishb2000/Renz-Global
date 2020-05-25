@@ -11,7 +11,9 @@ const MemberSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     dob: { type: String, required: true },
     gender: { type: String, required: true },
-    self_id: { type: String, required: true, unique: true }
+    self_id: { type: String, required: true, unique: true },
+    retail_incentive: {type: Number, required: true, default: 0},
+    total_income: {type: Number, required: true, default: 0}
 });
 
 module.exports = mongoose.model('Member', MemberSchema);
